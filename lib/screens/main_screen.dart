@@ -4,6 +4,7 @@ import 'video_screen.dart'; // Import VideoListScreen
 import 'account_screen.dart';
 import 'market_screen.dart';
 import 'tree_screen.dart';
+import 'map_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,9 +18,8 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const VideoListScreen(), // Thay VideoScreen bằng VideoListScreen
+    const MapScreen(),
     const AccountScreen(),
-    const MarketScreen(),
     const SettingsScreen(),
   ];
 
@@ -49,7 +49,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.video_library, color: _getIconColor(1)),
-            label: 'Video',
+            label: 'Map',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.account_circle, color: _getIconColor(2)),
