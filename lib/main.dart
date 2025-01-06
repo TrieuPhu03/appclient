@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart'; // Import Provider
+import 'screens/login_screen.dart';
+import './service/ThemeNotifier.dart';
 
-void main() async {
+Future<void> main() async {
   await dotenv.load(fileName: ".env");
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeNotifier(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -12,12 +19,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Facebook-like Interface',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const LoginScreen(),
+    return Consumer<ThemeNotifier>(
+      builder: (context, themeNotifier, child) {
+        return MaterialApp(
+          title: 'Facebook-like Interface',
+          theme: themeNotifier.isDarkMode
+              ? ThemeData.dark() // Nếu chế độ tối
+              : ThemeData.light(), // Nếu chế độ sáng
+          home: const LoginScreen(),
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }

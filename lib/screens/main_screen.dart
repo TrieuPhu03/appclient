@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import 'video_screen.dart'; // Import VideoListScreen
 import 'account_screen.dart';
-import 'market_screen.dart';
-import 'tree_screen.dart';
+import './tree_screen.dart';
 import 'map_screen.dart';
 
+// Cập nhật MainScreen để thêm điều hướng đến LogoutScreen
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -16,14 +15,22 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const MapScreen(),
-    const AccountScreen(),
-    const SettingsScreen(),
-  ];
+  Widget _getCurrentScreen() {
+    switch (_currentIndex) {
+      case 0:
+        return HomeScreen();
+      case 1:
+        return const AccountScreen();
+      case 2:
+        return const MapScreen();
+      case 3:
+        return const SettingsScreen();
+      case 4:
+      default:
+        return HomeScreen();
+    }
+  }
 
-  // Hàm thay đổi màu của icon
   Color _getIconColor(int index) {
     return _currentIndex == index ? Colors.blue : Colors.grey;
   }
@@ -33,8 +40,14 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Main Screen'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {},
+          ),
+        ],
       ),
-      body: _screens[_currentIndex],
+      body: _getCurrentScreen(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -48,19 +61,15 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.video_library, color: _getIconColor(1)),
-            label: 'Map',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle, color: _getIconColor(2)),
+            icon: Icon(Icons.home, color: _getIconColor(0)),
             label: 'Account',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart, color: _getIconColor(3)),
-            label: 'Market',
+            icon: Icon(Icons.account_circle, color: _getIconColor(2)),
+            label: 'Map',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_tree, color: _getIconColor(4)),
+            icon: Icon(Icons.settings, color: _getIconColor(5)),
             label: 'Setting',
           ),
         ],

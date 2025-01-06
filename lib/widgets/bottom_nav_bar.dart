@@ -14,13 +14,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
       onTap: onTap,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.video_library), label: 'Video'),
+        BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
         BottomNavigationBarItem(
             icon: Icon(Icons.account_circle), label: 'Account'),
-        BottomNavigationBarItem(icon: Icon(Icons.shop), label: 'Market'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.account_tree), label: 'Setting'),
+        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setting'),
       ],
     );
   }

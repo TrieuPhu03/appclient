@@ -55,7 +55,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
       final Map<String, dynamic> postData = {
         'id': widget.post.id,
         'userId': widget.post.userId,
-        'content': _contentController.text.trim(),
+        'description': _contentController.text.trim(),
         'image': _imageUrlController.text.trim().isEmpty
             ? null
             : _imageUrlController.text.trim(),

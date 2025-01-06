@@ -47,6 +47,10 @@ dependencies:
   google_maps_flutter_web: ^0.5.10
   geolocator: ^13.0.2
   geocoding: ^3.0.0
+  flutter_map_cancellable_tile_provider: ^3.0.2
+  flutter_localization: ^0.3.0
+  image_picker: ^1.1.2
+  flutter_map_marker_cluster: ^1.4.0
 
 dev_dependencies:
   flutter_test:

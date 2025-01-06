@@ -480,22 +480,6 @@ class _PostCard extends StatelessWidget {
                 },
               ),
             ),
-
-          // Hiển thị số lượt like
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: screenWidth * 0.04,
-              vertical: screenWidth * 0.01,
-            ),
-            child: Text(
-              '${post.like} likes',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: screenWidth * 0.035,
-              ),
-            ),
-          ),
-
           // Phần tương tác (like, comment, share)
           Padding(
             padding: EdgeInsets.all(screenWidth * 0.02),
