@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -13,16 +14,125 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  WebViewController? controllerPin;
+  String locationMessage = "Vui lòng cấp quyền truy cập vị trí để tiếp tục.";
+  bool hasPermission = false;
+  bool isControllersInitialized = false;
   LatLng _currentLocation = LatLng(21.0285, 105.8542);
   bool _isLoading = true;
   String _addressInfo = '';
   bool _showLocationImage = false;
 
+  Future<void> _checkAndRequestPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      setState(() {
+        locationMessage = "Dịch vụ vị trí không khả dụng. Hãy bật GPS.";
+      });
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        setState(() {
+          locationMessage = "Quyền truy cập vị trí bị từ chối.";
+        });
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      setState(() {
+        locationMessage = "Quyền truy cập vị trí bị từ chối vĩnh viễn.";
+      });
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      locationMessage = "Vĩ độ: ${position.latitude}, Kinh độ: ${position.longitude}";
+      hasPermission = true;
+      List<Map<String, double>> arrTest = [
+        {'kinh': 10.855007631426592, 'vi': 106.78462463418002},
+        {'kinh': 10.855805037408949, 'vi': 106.78560886338418},
+        {'kinh': 10.851989481890639, 'vi': 106.78355469532497},
+        {'kinh': 10.946491204232155, 'vi': 107.0107223928657}
+      ];
+      controllerPin = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..loadHtmlString('''
+          <!DOCTYPE html>
+          <html lang="en" style="height: 100%;
+    width: 100vw;">
+
+          <head>
+          <title>map</title>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+          <!-- Make sure you put this AFTER Leaflet's CSS -->
+          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+          <link rel="stylesheet" href="app.css">
+          <!-- <script src="index.js"></script> -->
+          </head>
+
+          <body style="height: 100%;
+    width: 100vw; padding: 0;
+    margin: 0;">
+          <div id="map" style="height: 100%;
+    width: 100vw;"></div>
+          <script>
+
+          const map = L.map('map').setView([${position.latitude}, ${position.longitude}], 13);
+
+          const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            const customIcon = L.icon({
+            iconUrl: 'https://lh3.googleusercontent.com/d/1UDjbLyO9yulF5hxhE0N20NooFw0zyzJ5', // URL của icon
+            iconSize: [38, 38], 
+            iconAnchor: [19, 38], 
+            popupAnchor: [0, -30] 
+            });
+
+            const arrTest = [{ kinh: 10.855007631426592, vi: 106.78462463418002 }, { kinh: 10.855805037408949, vi: 106.78560886338418 }, { kinh: 10.851989481890639, vi: 106.78355469532497 }, { kinh: 10.946491204232155, vi: 107.0107223928657 }]
+        arrTest.forEach(element => {
+            L.marker([element.kinh, element.vi], { icon: customIcon }).addTo(map)
+                .bindPopup(`kinh độ: ${arrTest[0]['kinh']}, vĩ độ ${arrTest[0]['vi']}`)
+                .openPopup();
+            });
+
+            </script>
+            </body>
+            
+            </html>
+        ''');
+
+      isControllersInitialized = true;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    _determinePosition();
+    // pageController = PageController(initialPage: _currentIndex);
+    _checkAndRequestPermission();
   }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _determinePosition();
+  // }
 
   Future<void> _determinePosition() async {
     bool serviceEnabled;
@@ -121,82 +231,23 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bản Đồ'),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                FlutterMap(
-                  mapController: MapController(),
-                  options: MapOptions(
-                    initialCenter: _currentLocation,
-                    initialZoom: 15.0,
-                    maxZoom: 18.0,
-                    minZoom: 3.0,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png?lang=vi',
-                      userAgentPackageName: 'com.example.app',
-                      tileProvider: CancellableNetworkTileProvider(),
-                    ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: _currentLocation,
-                          width: 80,
-                          height: 80,
-                          child: GestureDetector(
-                            onTap: _showLocationImageDialog,
-                            child: Column(
-                              children: [
-                                const Icon(
-                                  Icons.location_pin,
-                                  color: Colors.red,
-                                  size: 40,
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.5),
-                                        spreadRadius: 1,
-                                        blurRadius: 3,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    _addressInfo.isEmpty
-                                        ? 'Vị trí hiện tại'
-                                        : _addressInfo,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 2,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+      body: hasPermission
+          ? WebViewWidget(controller: controllerPin!) // Hiển thị bản đồ
+          : Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              locationMessage,
+              textAlign: TextAlign.center,
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _determinePosition,
-        child: const Icon(Icons.my_location),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _checkAndRequestPermission,
+              child: const Text("Cấp quyền truy cập vị trí"),
+            ),
+          ],
+        ),
       ),
     );
   }

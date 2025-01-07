@@ -4,6 +4,20 @@ import 'package:image_picker/image_picker.dart';
 import '../service/account_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
+  final String email;
+  final String phone;
+  final String initials;
+  final DateTime? birthDay;
+  final String? image;
+
+  EditProfileScreen({
+    required this.email,
+    required this.phone,
+    required this.initials,
+    required this.birthDay,
+    this.image,
+  });
+
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
 }
@@ -20,11 +34,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _emailController = TextEditingController();
-    _phoneController = TextEditingController();
-    _initialsController = TextEditingController();
-    _birthDayController = TextEditingController();
+    _emailController = TextEditingController(text: widget.email);
+    _phoneController = TextEditingController(text: widget.phone);
+    _initialsController = TextEditingController(text: widget.initials);
+    _birthDayController = TextEditingController(
+      text: widget.birthDay != null
+          ? _formatDateForDisplay(widget.birthDay)
+          : 'Không có',
+    );
     _imageFile = null;
+  }
+
+  String _formatDateForDisplay(DateTime? date) {
+    if (date == null) return 'Không có';
+    return "${date.day}-${date.month}-${date.year}";
   }
 
   Future<void> _selectImage() async {
@@ -35,6 +58,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _imageFile = File(pickedFile.path);
       });
     }
+  }
+
+  Future<DateTime?> _parseDateString(String dateStr) {
+    if (dateStr.isEmpty || dateStr == 'Không có') return Future.value(null);
+
+    try {
+      final dateParts = dateStr.split('-');
+      if (dateParts.length == 3) {
+        return Future.value(DateTime(
+            int.parse(dateParts[2]), // year
+            int.parse(dateParts[1]), // month
+            int.parse(dateParts[0])  // day
+        ));
+      }
+    } catch (e) {
+      print('Error parsing date: $e');
+    }
+    return Future.value(null);
   }
 
   @override
@@ -49,7 +90,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image selection or display
               Center(
                 child: GestureDetector(
                   onTap: _selectImage,
@@ -57,17 +97,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     radius: 50,
                     backgroundImage: _imageFile != null
                         ? FileImage(_imageFile!)
+                        : widget.image != null
+                        ? NetworkImage(widget.image!)
                         : const AssetImage('assets/nguoidung.jpg')
-                            as ImageProvider,
-                    child: _imageFile == null
+                    as ImageProvider,
+                    child: _imageFile == null && widget.image == null
                         ? const Icon(Icons.camera_alt, color: Colors.white)
-                        : Container(),
+                        : null,
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Email field
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -76,8 +116,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-
-              // Phone field
               TextField(
                 controller: _phoneController,
                 decoration: const InputDecoration(
@@ -86,8 +124,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-
-              // Initials field
               TextField(
                 controller: _initialsController,
                 decoration: const InputDecoration(
@@ -96,20 +132,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-
-              // Birth day field
               GestureDetector(
                 onTap: () async {
                   final DateTime? picked = await showDatePicker(
                     context: context,
-                    initialDate: DateTime.now(),
+                    initialDate: widget.birthDay ?? DateTime.now(),
                     firstDate: DateTime(1900),
                     lastDate: DateTime.now(),
-                    locale: const Locale('vi', 'VN'),
                   );
                   if (picked != null) {
                     setState(() {
-                      _birthDayController.text = picked.toIso8601String();
+                      _birthDayController.text = _formatDateForDisplay(picked);
                     });
                   }
                 },
@@ -125,8 +158,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Save button
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -134,26 +165,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   onPressed: () async {
                     try {
-                      DateTime? birthDay;
-                      try {
-                        birthDay = DateTime.parse(_birthDayController.text);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Ngày sinh không hợp lệ')),
-                        );
-                        return;
-                      }
-
+                      final DateTime? selectedBirthDay =
+                      await _parseDateString(_birthDayController.text);
                       await _accountService.updateUserProfile(
+                        _initialsController.text,
                         _emailController.text,
                         _phoneController.text,
-                        birthDay,
+                        selectedBirthDay, // Bỏ dấu ! vì đã cho phép null
                         _imageFile?.path,
                       );
 
                       if (!mounted) return;
-
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Cập nhật thành công')),
                       );

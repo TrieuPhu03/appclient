@@ -5,6 +5,7 @@ import 'admin_screen.dart';
 import 'main_screen.dart';
 import 'registration_screen.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'forgotPassword_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -170,6 +171,26 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Thêm nút "Quên mật khẩu"
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ForgotPasswordScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Quên mật khẩu?',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.blue,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),

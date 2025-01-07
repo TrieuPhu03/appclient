@@ -19,22 +19,19 @@ class _AccountScreenState extends State<AccountScreen> {
     _userFuture = _accountService.getProfile();
   }
 
-  String _formatDate(String? date) {
-    // Thêm dấu ? để chấp nhận giá trị null
-    if (date == null || date.isEmpty) return 'Không có';
-    try {
-      final dateTime = DateTime.parse(date);
-      return "${dateTime.day}/${dateTime.month}/${dateTime.year}";
-    } catch (e) {
-      return 'Không có';
-    }
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Không có';
+    return "${date.day}-${date.month}-${date.year}";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('Profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: Colors.teal,
+        elevation: 0,
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _userFuture,
@@ -49,31 +46,55 @@ class _AccountScreenState extends State<AccountScreen> {
 
           final user = snapshot.data!;
 
+          DateTime? birthDay = user['birthDay'] != null
+              ? DateTime.parse(user['birthDay'])
+              : null;
+
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Profile Image (use avatar from API)
                   CircleAvatar(
                     radius: 80,
                     backgroundImage: user['image'] != null
-                        ? NetworkImage(user['image']) // Use avatar URL from API
+                        ? NetworkImage(user['image'])
                         : const AssetImage('assets/nguoidung.jpg')
-                            as ImageProvider,
+                    as ImageProvider,
+                    backgroundColor: Colors.white,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.teal.shade200,
+                          width: 4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 20),
-
-                  // User Details
                   Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
+                    elevation: 4,
+                    shadowColor: Colors.black.withOpacity(0.1),
+                    color: Colors.white,
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildDetailRow(
-                              Icons.person, 'Tên', user['userName']),
+                              Icons.person, 'Tên', user['initials']),
                           const Divider(),
                           _buildDetailRow(Icons.email, 'Email', user['email']),
                           const Divider(),
@@ -81,22 +102,41 @@ class _AccountScreenState extends State<AccountScreen> {
                               user['phoneNumber'] ?? 'Không có'),
                           const Divider(),
                           _buildDetailRow(Icons.cake, 'Ngày sinh',
-                              _formatDate(user['birthDay'])),
+                              _formatDate(birthDay)),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  // Button to edit profile
+                  const SizedBox(height: 30),
                   ElevatedButton(
-                    onPressed: () {
-                      // Navigate to the profile edit screen
-                      Navigator.push(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      elevation: 5,
+                      textStyle: const TextStyle(fontSize: 16),
+                    ),
+                    onPressed: () async {
+                      final updated = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => EditProfileScreen(),
+                          builder: (context) => EditProfileScreen(
+                            email: user['email'] ?? '',
+                            phone: user['phoneNumber'] ?? '',
+                            initials: user['initials'] ?? '',
+                            birthDay: birthDay,
+                            image: user['image'],
+                          ),
                         ),
                       );
+
+                      if (updated == true) {
+                        setState(() {
+                          _userFuture = _accountService.getProfile();
+                        });
+                      }
                     },
                     child: const Text('Chỉnh sửa thông tin'),
                   ),
@@ -108,24 +148,22 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
     );
   }
-
-  // Helper method to create consistent detail rows
   Widget _buildDetailRow(IconData icon, String label, String? value) {
-    // Thêm ? cho value
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Icon(icon, color: Colors.blue),
-          const SizedBox(width: 10),
+          Icon(icon, color: Colors.teal, size: 28),
+          const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.grey)),
-              Text(value ?? 'Không có',
-                  style: const TextStyle(fontSize: 16)), // Thêm ?? operator
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.grey)),
+              Text(value ?? 'Không có', style: const TextStyle(fontSize: 18)),
             ],
           ),
         ],
