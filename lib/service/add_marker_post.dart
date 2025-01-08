@@ -8,14 +8,14 @@ import '../service/api_client.dart';
 import '../models/user.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
-class AddPostScreen extends StatefulWidget {
-  const AddPostScreen({Key? key}) : super(key: key);
+class AddMarkerPost extends StatefulWidget {
+  const AddMarkerPost({Key? key}) : super(key: key);
 
   @override
   _AddPostScreenState createState() => _AddPostScreenState();
 }
 
-class _AddPostScreenState extends State<AddPostScreen> {
+class _AddPostScreenState extends State<AddMarkerPost> {
   final ApiClient _apiClient;
   final _contentController = TextEditingController();
   final _imageUrlController = TextEditingController();
@@ -97,36 +97,29 @@ class _AddPostScreenState extends State<AddPostScreen> {
       print('Token: $token');
       print('Username: $username');
 
-      final post = {
-        'description': _contentController.text.trim(),
+      final marker = {
+        'title': _contentController.text.trim(),
         'image': _imageUrlController.text.trim().isNotEmpty
             ? _imageUrlController.text.trim()
             : null,
-        'like': 0,
         'userId': username,
-        'user': null,
-        'comment': null,
-        'createdAt': DateTime.now().toIso8601String()
       };
 
-      print('Creating post: $post');
-
-      final response = await http.post(Uri.parse('${Config_URL.baseUrl}Post'),
+      final response = await http.post(Uri.parse('${Config_URL.baseUrl}Marker'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token'
           },
-          body: json.encode(post));
+          body: json.encode(marker));
 
       print('Post request response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 201) {
         Navigator.pop(context, true);
       } else {
-        throw Exception('Lỗi tạo bài đăng: ${response.body}');
+        throw Exception('Lỗi tạo marker: ${response.body}');
       }
     } catch (e) {
-      print('Error in addPost: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi: ${e.toString()}')),
       );

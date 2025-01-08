@@ -6,7 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../models/post.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../service/add_post.dart';
+import '../service/add_marker_post.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -59,7 +59,8 @@ class _MapScreenState extends State<MapScreen> {
 
     Position position = await Geolocator.getCurrentPosition();
     setState(() {
-      locationMessage = "Vĩ độ: ${position.latitude}, Kinh độ: ${position.longitude}";
+      locationMessage =
+      "Vĩ độ: ${position.latitude}, Kinh độ: ${position.longitude}";
       hasPermission = true;
       List<Map<String, double>> arrTest = [
         {'kinh': 10.855007631426592, 'vi': 106.78462463418002},
@@ -87,15 +88,11 @@ class _MapScreenState extends State<MapScreen> {
           <!-- <script src="index.js"></script> -->
           </head>
 
-          <body style="height: 100%;
-    width: 100vw; padding: 0;
-    margin: 0;">
-          <div id="map" style="height: 100%;
-    width: 100vw;"></div>
+          <body style="height: 100%;width: 100vw; padding: 0; margin: 0;">
+          <div id="map" style="height: 100%;width: 100vw;"></div>
           <script>
-
-          const map = L.map('map').setView([${position.latitude}, ${position.longitude}], 13);
-
+          const map = L.map('map').setView([${position.latitude}, ${position
+            .longitude}], 13);
           const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -111,7 +108,7 @@ class _MapScreenState extends State<MapScreen> {
             const arrTest = [{ kinh: 10.855007631426592, vi: 106.78462463418002 }, { kinh: 10.855805037408949, vi: 106.78560886338418 }, { kinh: 10.851989481890639, vi: 106.78355469532497 }, { kinh: 10.946491204232155, vi: 107.0107223928657 }]
         arrTest.forEach(element => {
             L.marker([element.kinh, element.vi], { icon: customIcon }).addTo(map)
-                .bindPopup(`kinh độ: ${arrTest[0]['kinh']}, vĩ độ ${arrTest[0]['vi']}`)
+                .bindPopup(`kinh độ: ${arrTest[1]['kinh']}, vĩ độ ${arrTest[1]['vi']}`)
                 .openPopup();
             });
 
@@ -132,6 +129,7 @@ class _MapScreenState extends State<MapScreen> {
     _checkAndRequestPermission();
     _fetchPosts();
   }
+
   Future<void> _fetchPosts() async {
     try {
       final response = await http.get(Uri.parse('API_URL_Post'));
@@ -146,10 +144,11 @@ class _MapScreenState extends State<MapScreen> {
       print('Error fetching posts: $e');
     }
   }
+
   Future<void> _navigateToAddPost() async {
     final bool? isPostCreated = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => AddPostScreen()),
+      MaterialPageRoute(builder: (context) => AddMarkerPost()),
     );
 
     if (isPostCreated == true) {
@@ -225,7 +224,7 @@ class _MapScreenState extends State<MapScreen> {
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
                           ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
+                          loadingProgress.expectedTotalBytes!
                           : null,
                     ),
                   );
@@ -252,6 +251,16 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  void _navigateToPost() {
+    // Thực hiện hành động khi bấm nút "Bài đăng"
+    // Ví dụ: điều hướng tới màn hình bài đăng
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) =>
+          AddMarkerPost()), // Thay "PostPage" bằng màn hình bài đăng của bạn
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,6 +281,16 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Xử lý khi nhấn vào nút
+          print("Thêm bài đăng");
+          // Điều hướng đến màn hình thêm bài đăng nếu cần
+          // Navigator.push(context, MaterialPageRoute(builder: (context) => AddPostScreen()));
+        },
+        child: const Icon(Icons.add), // Biểu tượng dấu cộng
+        tooltip: "Thêm bài đăng", // Tooltip hiển thị khi giữ nút
       ),
     );
   }

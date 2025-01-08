@@ -278,28 +278,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: EdgeInsets.all(screenWidth * 0.025),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            backgroundImage: const NetworkImage(
-                              'https://picsum.photos/seed/user/200/200',
-                            ),
-                            radius: screenWidth * 0.06,
-                          ),
+
                           SizedBox(width: screenWidth * 0.025),
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Bạn đang nghĩ gì?',
-                                hintStyle:
-                                    TextStyle(fontSize: screenWidth * 0.04),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: Colors.grey[200],
-                              ),
-                            ),
-                          ),
+
                         ],
                       ),
                     ),

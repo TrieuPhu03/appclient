@@ -6,7 +6,7 @@ import '../service/api_client.dart';
 class DeletePostScreen extends StatefulWidget {
   final int postId;
   final Function onDeleteSuccess;
-  final String baseUrl = 'https://biggreyboard71.conveyor.cloud/api/Post';
+  final String baseUrl = 'https://firstgreenbook56.conveyor.cloud/api/Post';
 
   DeletePostScreen({
     Key? key,
