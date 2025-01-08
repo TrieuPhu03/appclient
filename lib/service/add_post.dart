@@ -6,7 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/config_url.dart';
 import '../service/api_client.dart';
 import '../models/user.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({Key? key}) : super(key: key);
@@ -22,6 +23,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   User? _currentUser;
   bool _isLoading = false;
   String? _currentUserId;
+  File? _selectedImage;
 
   _AddPostScreenState() : _apiClient = ApiClient(baseUrl: Config_URL.baseUrl);
 
@@ -42,7 +44,17 @@ class _AddPostScreenState extends State<AddPostScreen> {
       });
     }
   }
+// lay hinh anh
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
   // Hàm lấy thông tin người dùng từ API
   Future<void> _fetchUserById(String userId) async {
     try {

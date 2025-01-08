@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../models/post.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../service/add_post.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -22,6 +24,8 @@ class _MapScreenState extends State<MapScreen> {
   bool _isLoading = true;
   String _addressInfo = '';
   bool _showLocationImage = false;
+  final Set<Marker> _markers = {};
+  final List<Post> _posts = [];
 
   Future<void> _checkAndRequestPermission() async {
     bool serviceEnabled;
@@ -126,13 +130,33 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
     // pageController = PageController(initialPage: _currentIndex);
     _checkAndRequestPermission();
+    _fetchPosts();
   }
+  Future<void> _fetchPosts() async {
+    try {
+      final response = await http.get(Uri.parse('API_URL_Post'));
+      if (response.statusCode == 200) {
+        List<dynamic> postsData = json.decode(response.body);
+        setState(() {
+          _posts.clear();
+          _posts.addAll(postsData.map((data) => Post.fromJson(data)).toList());
+        });
+      }
+    } catch (e) {
+      print('Error fetching posts: $e');
+    }
+  }
+  Future<void> _navigateToAddPost() async {
+    final bool? isPostCreated = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddPostScreen()),
+    );
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _determinePosition();
-  // }
+    if (isPostCreated == true) {
+      // Làm mới bài đăng sau khi thêm thành công
+      _fetchPosts();
+    }
+  }
 
   Future<void> _determinePosition() async {
     bool serviceEnabled;

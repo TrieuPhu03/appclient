@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../service/account_service.dart';
 import 'edit_profile_screen.dart';
+import 'dart:io';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({Key? key}) : super(key: key);
@@ -56,31 +57,29 @@ class _AccountScreenState extends State<AccountScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  CircleAvatar(
-                    radius: 80,
-                    backgroundImage: user['image'] != null
-                        ? NetworkImage(user['image'])
-                        : const AssetImage('assets/nguoidung.jpg')
-                    as ImageProvider,
-                    backgroundColor: Colors.white,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.teal.shade200,
-                          width: 4,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
+                CircleAvatar(
+                radius: 80,
+                backgroundImage: user['image'] != null
+                    ? FileImage(File(user['image']))  // Đọc hình ảnh từ file cục bộ
+                    : const AssetImage('assets/nguoidung.jpg') as ImageProvider,
+                backgroundColor: Colors.white,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.teal.shade200,
+                      width: 4,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
+                ),
+              ),
                   Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16.0),
@@ -118,26 +117,26 @@ class _AccountScreenState extends State<AccountScreen> {
                       elevation: 5,
                       textStyle: const TextStyle(fontSize: 16),
                     ),
-                    onPressed: () async {
-                      final updated = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditProfileScreen(
-                            email: user['email'] ?? '',
-                            phone: user['phoneNumber'] ?? '',
-                            initials: user['initials'] ?? '',
-                            birthDay: birthDay,
-                            image: user['image'],
+                      onPressed: () async {
+                        final updated = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditProfileScreen(
+                              email: user['email'] ?? '',
+                              phone: user['phoneNumber'] ?? '',
+                              initials: user['initials'] ?? '',
+                              birthDay: birthDay,
+                              image: user['image'],
+                            ),
                           ),
-                        ),
-                      );
+                        );
 
-                      if (updated == true) {
-                        setState(() {
-                          _userFuture = _accountService.getProfile();
-                        });
-                      }
-                    },
+                        if (updated == true) {
+                          setState(() {
+                            _userFuture = _accountService.getProfile(); // Tải lại dữ liệu
+                          });
+                        }
+                      },
                     child: const Text('Chỉnh sửa thông tin'),
                   ),
                 ],

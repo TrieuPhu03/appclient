@@ -7,7 +7,7 @@ import '../service/add_post.dart'; // Import màn hình thêm bài đăng
 import '../service/edit_post.dart';
 import '../service/delete_post.dart';
 import '../config/config_url.dart';
-
+import 'dart:io';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -150,14 +150,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Trang Chủ',
-          style: TextStyle(
-            color: Colors.blue[700],
-            fontWeight: FontWeight.bold,
-            fontSize: screenWidth * 0.07,
-          ),
-        ),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -389,11 +381,10 @@ class _PostCard extends StatelessWidget {
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundImage:
-                      user.avatar != null && user.avatar!.isNotEmpty
-                          ? NetworkImage(user.avatar!)
-                          : const NetworkImage(
-                              'https://picsum.photos/seed/default/200/200'),
+                  backgroundImage: user.avatar != null && user.avatar!.isNotEmpty
+                      ? FileImage(File(user.avatar!)) // Dùng FileImage cho hình ảnh từ file cục bộ
+                      : const NetworkImage(
+                      'https://picsum.photos/seed/default/200/200') as ImageProvider,
                   radius: screenWidth * 0.04,
                 ),
                 SizedBox(width: screenWidth * 0.02),

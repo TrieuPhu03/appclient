@@ -3,6 +3,7 @@ import 'home_screen.dart';
 import 'account_screen.dart';
 import './tree_screen.dart';
 import 'map_screen.dart';
+import 'tree_screen.dart'; // Đừng quên import SettingsScreen nếu bạn có màn hình này
 
 // Cập nhật MainScreen để thêm điều hướng đến LogoutScreen
 class MainScreen extends StatefulWidget {
@@ -43,7 +44,9 @@ class _MainScreenState extends State<MainScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {},
+            onPressed: () {
+              // Thêm chức năng logout tại đây
+            },
           ),
         ],
       ),
@@ -57,19 +60,19 @@ class _MainScreenState extends State<MainScreen> {
         },
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home, color: _getIconColor(0)),
+            icon: Icon(Icons.home, color: _getIconColor(0)), // Sửa thành _getIconColor(0) cho Home
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.home, color: _getIconColor(0)),
+            icon: Icon(Icons.account_circle, color: _getIconColor(1)), // Sửa thành _getIconColor(1) cho Account
             label: 'Account',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle, color: _getIconColor(2)),
+            icon: Icon(Icons.map, color: _getIconColor(2)), // Sửa thành _getIconColor(2) cho Map
             label: 'Map',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings, color: _getIconColor(5)),
+            icon: Icon(Icons.settings, color: _getIconColor(3)), // Sửa thành _getIconColor(3) cho Settings
             label: 'Setting',
           ),
         ],
