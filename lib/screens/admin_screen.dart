@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nguyentrieuphu_2180601134_sunflower/screens/login_screen.dart';
+import 'user_list_screen.dart'; // Import màn hình quản lý người dùng
+import 'post_list_screen.dart'; // Import màn hình quản lý bài viết
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -9,7 +11,7 @@ class AdminScreen extends StatelessWidget {
   Future<void> _showLogoutConfirmDialog(BuildContext context) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // Người dùng phải chọn
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Đăng Xuất'),
@@ -24,7 +26,7 @@ class AdminScreen extends StatelessWidget {
             TextButton(
               child: const Text('Hủy'),
               onPressed: () {
-                Navigator.of(context).pop(); // Đóng dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
@@ -33,11 +35,9 @@ class AdminScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.red),
               ),
               onPressed: () async {
-                // Thực hiện đăng xuất
                 SharedPreferences prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
 
-                // Điều hướng về màn hình đăng nhập
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -56,11 +56,26 @@ class AdminScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.deepPurple,
-        title: const Text(
-          "Admin Dashboard",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
         elevation: 0,
+        centerTitle: true,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/logo.jpg', // Đường dẫn đến logo
+              width: 40,
+              height: 40,
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              "Admin Dashboard",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -73,19 +88,20 @@ class AdminScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.deepPurple, Colors.purpleAccent],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                  gradient: LinearGradient(
+                    colors: [Colors.deepPurple, Colors.purpleAccent],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      offset: Offset(0, 5),
                     ),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        offset: Offset(0, 5),
-                      )
-                    ]),
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -120,31 +136,21 @@ class AdminScreen extends StatelessWidget {
                     title: 'Quản Lý Người Dùng',
                     color: Colors.blue,
                     onTap: () {
-                      // Điều hướng đến màn hình quản lý người dùng
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => UserListScreen()),
+                      );
                     },
                   ),
                   _buildAdminFeatureCard(
-                    icon: Icons.settings,
-                    title: 'Cài Đặt Hệ Thống',
-                    color: Colors.green,
-                    onTap: () {
-                      // Điều hướng đến màn hình cài đặt
-                    },
-                  ),
-                  _buildAdminFeatureCard(
-                    icon: Icons.analytics,
-                    title: 'Thống Kê',
+                    icon: Icons.article,
+                    title: 'Quản Lý Bài Viết',
                     color: Colors.orange,
                     onTap: () {
-                      // Điều hướng đến màn hình thống kê
-                    },
-                  ),
-                  _buildAdminFeatureCard(
-                    icon: Icons.notifications,
-                    title: 'Thông Báo',
-                    color: Colors.red,
-                    onTap: () {
-                      // Điều hướng đến màn hình quản lý thông báo
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => PostListScreen()),
+                      );
                     },
                   ),
                 ],
@@ -190,15 +196,16 @@ class AdminScreen extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.2),
-                blurRadius: 10,
-                offset: Offset(0, 5),
-              )
-            ]),
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.2),
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -207,7 +214,10 @@ class AdminScreen extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.bold, color: color),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ],
         ),

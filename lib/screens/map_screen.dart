@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import '../models/post.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../service/add_marker_post.dart';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import '../models/marker.dart';
+import '../service/marker_service.dart';
+import '../config/config_url.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -16,16 +16,65 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  String get apiUrl => "${Config_URL.baseUrl}Marker";
   WebViewController? controllerPin;
   String locationMessage = "Vui lòng cấp quyền truy cập vị trí để tiếp tục.";
   bool hasPermission = false;
-  bool isControllersInitialized = false;
-  LatLng _currentLocation = LatLng(21.0285, 105.8542);
-  bool _isLoading = true;
-  String _addressInfo = '';
-  bool _showLocationImage = false;
-  final Set<Marker> _markers = {};
-  final List<Post> _posts = [];
+  LatLng _currentLocation = LatLng(10.8550333, 106.7847033); // Default: Hutech E2
+  List<MarkerData> markers = [];
+
+  Future<void> _loadMarkers() async {
+    try {
+      final data = await MarkerService.fetchMarkers();
+      setState(() {
+        markers = data;
+      });
+      _buildWebView();
+    } catch (e) {
+      print("Failed to load markers: $e");
+    }
+  }
+
+  Future<void> _addmarker(String title, String image) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('jwt_token');
+    String kinhDo = _currentLocation.latitude.toString();
+    String viDo = _currentLocation.longitude.toString();
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "UserId": "1",
+          "title": title,
+          "image": image,
+          "kinhDo": kinhDo,
+          "viDo": viDo
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        // Load lại danh sách markers sau khi thêm thành công
+        await _loadMarkers();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Thêm marker thành công!")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Thêm marker thất bại!")),
+        );
+      }
+    } catch (e) {
+      print("Error adding marker: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Lỗi khi gọi API!")),
+      );
+    }
+  }
 
   Future<void> _checkAndRequestPermission() async {
     bool serviceEnabled;
@@ -59,221 +108,129 @@ class _MapScreenState extends State<MapScreen> {
 
     Position position = await Geolocator.getCurrentPosition();
     setState(() {
-      locationMessage =
-      "Vĩ độ: ${position.latitude}, Kinh độ: ${position.longitude}";
+      _currentLocation = LatLng(position.latitude, position.longitude);
       hasPermission = true;
-      List<Map<String, double>> arrTest = [
-        {'kinh': 10.855007631426592, 'vi': 106.78462463418002},
-        {'kinh': 10.855805037408949, 'vi': 106.78560886338418},
-        {'kinh': 10.851989481890639, 'vi': 106.78355469532497},
-        {'kinh': 10.946491204232155, 'vi': 107.0107223928657}
-      ];
-      controllerPin = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..loadHtmlString('''
-          <!DOCTYPE html>
-          <html lang="en" style="height: 100%;
-    width: 100vw;">
+      _buildWebView();
+    });
+  }
 
-          <head>
-          <title>map</title>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-          <!-- Make sure you put this AFTER Leaflet's CSS -->
-          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-          <link rel="stylesheet" href="app.css">
-          <!-- <script src="index.js"></script> -->
-          </head>
+  void _buildWebView() {
+    final markersJs = markers.map((marker) {
+      return '''
+        { kinh: +"${marker.kinhDo}", vi: +"${marker.viDo}", title: "${marker.title}", image: "${marker.image}" }
+      ''';
+    }).join(",");
 
-          <body style="height: 100%;width: 100vw; padding: 0; margin: 0;">
-          <div id="map" style="height: 100%;width: 100vw;"></div>
+    controllerPin = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadHtmlString('''
+        <!DOCTYPE html>
+        <html lang="en" style="height: 100%; width: 100vw;">
+        <head>
+    <title>map</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- <link rel="stylesheet" href="app.css"> -->
+    <!-- <script src="index.js"></script> -->
+</head>
+        <body style="height: 100%; width: 100vw; margin: 0; padding: 0;">
+          <div id="map" style="height: 100%; width: 100vw;"></div>
           <script>
-          const map = L.map('map').setView([${position.latitude}, ${position
-            .longitude}], 13);
-          const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            const map = L.map('map').setView([${_currentLocation.latitude}, ${_currentLocation.longitude}], 13);
+            const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
+        }).addTo(map);
 
             const customIcon = L.icon({
-            iconUrl: 'https://lh3.googleusercontent.com/d/1UDjbLyO9yulF5hxhE0N20NooFw0zyzJ5', // URL của icon
-            iconSize: [38, 38], 
-            iconAnchor: [19, 38], 
-            popupAnchor: [0, -30] 
+              iconUrl: 'https://lh3.googleusercontent.com/d/1UDjbLyO9yulF5hxhE0N20NooFw0zyzJ5',
+              iconSize: [38, 38],
+              iconAnchor: [19, 38],
+              popupAnchor: [0, -30]
             });
 
-            const arrTest = [{ kinh: 10.855007631426592, vi: 106.78462463418002 }, { kinh: 10.855805037408949, vi: 106.78560886338418 }, { kinh: 10.851989481890639, vi: 106.78355469532497 }, { kinh: 10.946491204232155, vi: 107.0107223928657 }]
-        arrTest.forEach(element => {
-            L.marker([element.kinh, element.vi], { icon: customIcon }).addTo(map)
-                .bindPopup(`kinh độ: ${arrTest[1]['kinh']}, vĩ độ ${arrTest[1]['vi']}`)
+            const arrTest = [${markersJs}];
+            arrTest.forEach((element) => {
+              L.marker([element.kinh, element.vi], { icon: customIcon }).addTo(map)
+                .bindPopup(\`
+                  <div>
+                    <b>\${element.title}</b><br>
+                    <img src="\${element.image}" alt="\${element.title}" style="width: 150px; height: auto;">
+                  </div>
+                \`)
                 .openPopup();
             });
+          </script>
+        </body>
+        </html>
+      ''');
+  }
 
-            </script>
-            </body>
-            
-            </html>
-        ''');
+  void _showAddMarkerDialog() {
+    final titleController = TextEditingController();
+    final imageController = TextEditingController();
 
-      isControllersInitialized = true;
-    });
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Thêm Marker"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: "Title"),
+            ),
+            TextField(
+              controller: imageController,
+              decoration: const InputDecoration(labelText: "Image URL"),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Hủy"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _addmarker(titleController.text, imageController.text);
+            },
+            child: const Text("Thêm"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   void initState() {
     super.initState();
-    // pageController = PageController(initialPage: _currentIndex);
     _checkAndRequestPermission();
-    _fetchPosts();
-  }
-
-  Future<void> _fetchPosts() async {
-    try {
-      final response = await http.get(Uri.parse('API_URL_Post'));
-      if (response.statusCode == 200) {
-        List<dynamic> postsData = json.decode(response.body);
-        setState(() {
-          _posts.clear();
-          _posts.addAll(postsData.map((data) => Post.fromJson(data)).toList());
-        });
-      }
-    } catch (e) {
-      print('Error fetching posts: $e');
-    }
-  }
-
-  Future<void> _navigateToAddPost() async {
-    final bool? isPostCreated = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AddMarkerPost()),
-    );
-
-    if (isPostCreated == true) {
-      // Làm mới bài đăng sau khi thêm thành công
-      _fetchPosts();
-    }
-  }
-
-  Future<void> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dịch vụ vị trí đã bị vô hiệu hóa')),
-      );
-      return;
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Quyền truy cập vị trí bị từ chối')),
-        );
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Quyền vị trí bị từ chối vĩnh viễn')),
-      );
-      return;
-    }
-
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-
-      setState(() {
-        _currentLocation = LatLng(position.latitude, position.longitude);
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi lấy vị trí: $e')),
-      );
-    }
-  }
-
-  void _showLocationImageDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.network(
-                'https://picsum.photos/300/200',
-                width: 300,
-                height: 200,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Text('Không thể tải hình ảnh: $error');
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Hình ảnh tại vị trí của bạn',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('Đóng'),
-              )
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _navigateToPost() {
-    // Thực hiện hành động khi bấm nút "Bài đăng"
-    // Ví dụ: điều hướng tới màn hình bài đăng
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) =>
-          AddMarkerPost()), // Thay "PostPage" bằng màn hình bài đăng của bạn
-    );
+    _loadMarkers();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Map Screen'),
+      ),
       body: hasPermission
-          ? WebViewWidget(controller: controllerPin!) // Hiển thị bản đồ
+          ? WebViewWidget(controller: controllerPin!)
           : Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              locationMessage,
-              textAlign: TextAlign.center,
-            ),
+            Text(locationMessage, textAlign: TextAlign.center),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _checkAndRequestPermission,
@@ -283,15 +240,16 @@ class _MapScreenState extends State<MapScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Xử lý khi nhấn vào nút
-          print("Thêm bài đăng");
-          // Điều hướng đến màn hình thêm bài đăng nếu cần
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => AddPostScreen()));
-        },
-        child: const Icon(Icons.add), // Biểu tượng dấu cộng
-        tooltip: "Thêm bài đăng", // Tooltip hiển thị khi giữ nút
+        onPressed: _showAddMarkerDialog,
+        child: const Icon(Icons.add),
       ),
     );
   }
+}
+
+class LatLng {
+  final double latitude;
+  final double longitude;
+
+  LatLng(this.latitude, this.longitude);
 }

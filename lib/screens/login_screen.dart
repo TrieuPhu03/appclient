@@ -30,6 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
 
+
+
     if (token != null && JwtDecoder.isExpired(token) == false) {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       if (decodedToken["role"] == "User") {

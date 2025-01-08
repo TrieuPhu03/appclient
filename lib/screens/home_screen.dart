@@ -117,8 +117,8 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _filteredPosts = posts.where((post) {
           return post.description
-                  ?.toLowerCase()
-                  .contains(query.toLowerCase()) ??
+              ?.toLowerCase()
+              .contains(query.toLowerCase()) ??
               false;
         }).toList();
       });
@@ -129,12 +129,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DeletePostScreen(
-          postId: post.id!,
-          onDeleteSuccess: () {
-            _loadData();
-          },
-        ),
+        builder: (context) =>
+            DeletePostScreen(
+              postId: post.id!,
+              onDeleteSuccess: () {
+                _loadData();
+              },
+            ),
       ),
     );
 
@@ -150,50 +151,53 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple, Colors.blueAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+        ),
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.white,
+              radius: 20,
+              child: Icon(Icons.home, color: Colors.purple, size: 24),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Trang chính',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.search,
-                color: Colors.black, size: screenWidth * 0.06),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: Text('Tìm kiếm bài đăng'),
-                    content: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Nhập từ khóa...',
-                        border: OutlineInputBorder(),
-                      ),
-                      onChanged: _filterPosts,
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _searchController.clear();
-                          _loadData(); // Khôi phục danh sách ban đầu
-                        },
-                        child: Text('Đóng'),
-                      )
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.refresh,
-                color: Colors.black, size: screenWidth * 0.06),
+            icon: Icon(Icons.refresh_rounded, color: Colors.white, size: 28),
             onPressed: _loadData,
+            tooltip: 'Làm mới',
           ),
           IconButton(
-            icon:
-                Icon(Icons.add, color: Colors.black, size: screenWidth * 0.06),
-            onPressed: _navigateToAddPost, // Thêm nút tạo bài đăng mới
+            icon: Icon(Icons.add_circle_outline, color: Colors.white, size: 28),
+            onPressed: _navigateToAddPost,
+            tooltip: 'Thêm bài đăng mới',
           ),
         ],
       ),
@@ -203,23 +207,11 @@ class _HomeScreenState extends State<HomeScreen> {
           if (postSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (postSnapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 60),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Không thể tải bài đăng',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  Text('Lỗi: ${postSnapshot.error}'),
-                  ElevatedButton(
-                    onPressed: _loadData,
-                    child: Text('Thử lại'),
-                  ),
-                ],
-              ),
+            return _buildErrorState(
+              context,
+              message: 'Không thể tải bài đăng',
+              error: postSnapshot.error,
+              onRetry: _loadData,
             );
           }
 
@@ -229,106 +221,123 @@ class _HomeScreenState extends State<HomeScreen> {
               if (userSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (userSnapshot.hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.error_outline,
-                          color: Colors.red, size: 60),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Không thể tải người dùng',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      Text('Lỗi: ${userSnapshot.error}'),
-                      ElevatedButton(
-                        onPressed: _loadData,
-                        child: Text('Thử lại'),
-                      ),
-                    ],
-                  ),
+                return _buildErrorState(
+                  context,
+                  message: 'Không thể tải người dùng',
+                  error: userSnapshot.error,
+                  onRetry: _loadData,
                 );
               }
 
-              List<Post> posts = _filteredPosts;
-              List<User> users = userSnapshot.data!;
+              final posts = _filteredPosts;
+              final users = userSnapshot.data ?? [];
 
               if (posts.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.post_add, color: Colors.grey, size: 60),
-                      SizedBox(height: 16),
-                      Text(
-                        'Không có bài đăng',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      Text('Hãy thử tạo bài đăng mới'),
-                    ],
-                  ),
+                return _buildEmptyState(
+                  context,
+                  message: 'Không có bài đăng',
+                  suggestion: 'Hãy thử tạo bài đăng mới',
                 );
               }
 
               return CustomScrollView(
                 slivers: [
-                  // Phần tạo bài viết (giữ nguyên)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.all(screenWidth * 0.025),
-                      child: Row(
-                        children: [
-
-                          SizedBox(width: screenWidth * 0.025),
-
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Các bài đăng
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        Post post = posts[index];
-                        User? user = users.firstWhere(
-                          (u) => u.id == post.userId,
-                          orElse: () => User(
-                            id: null,
-                            userName: 'Người dùng ẩn',
-                            email: '',
-                            passwordHash: '',
-                          ),
-                        );
-
-                        return _PostCard(
-                          post: post,
-                          user: user,
-                          screenWidth: screenWidth,
-                          onEdit: () => _navigateToEditPost(post),
-                          onDelete: () => _deletePost(post),
-                        );
-                      },
-                      childCount: posts.length,
-                    ),
-                  ),
+                  _buildPostList(posts, users, screenWidth),
                 ],
               );
             },
           );
         },
       ),
-
-      // Thêm Floating Action Button để tạo bài đăng
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAddPost,
         child: Icon(Icons.add),
-        backgroundColor: Colors.blue[700],
+        backgroundColor: Colors.blueAccent,
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, {
+    required String message,
+    Object? error,
+    required VoidCallback onRetry,
+  }) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline, color: Colors.redAccent, size: 60),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.redAccent),
+          ),
+          if (error != null)
+            Text(
+              'Lỗi: $error',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ElevatedButton(
+            onPressed: onRetry,
+            style: ElevatedButton.styleFrom(backgroundColor : Colors.blueAccent),
+            child: const Text('Thử lại', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, {
+    required String message,
+    required String suggestion,
+  }) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.post_add, color: Colors.grey, size: 60),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.grey[700]),
+          ),
+          Text(
+            suggestion,
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPostList(List<Post> posts, List<User> users, double screenWidth) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+            (context, index) {
+          final post = posts[index];
+          final user = users.firstWhere(
+                (u) => u.id == post.userId,
+            orElse: () => User(
+              id: null,
+              userName: 'Người dùng ẩn',
+              email: '',
+              passwordHash: '',
+            ),
+          );
+
+          return _PostCard(
+            post: post,
+            user: user,
+            screenWidth: screenWidth,
+            onEdit: () => _navigateToEditPost(post),
+            onDelete: () => _deletePost(post),
+          );
+        },
+        childCount: posts.length,
       ),
     );
   }
 }
-
 class _PostCard extends StatelessWidget {
   final Post post;
   final User user;

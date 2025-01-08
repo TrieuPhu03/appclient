@@ -40,15 +40,6 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Main Screen'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              // Thêm chức năng logout tại đây
-            },
-          ),
-        ],
       ),
       body: _getCurrentScreen(),
       bottomNavigationBar: BottomNavigationBar(
