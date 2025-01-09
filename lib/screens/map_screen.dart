@@ -49,7 +49,7 @@ class _MapScreenState extends State<MapScreen> {
           "Authorization": "Bearer $token",
         },
         body: jsonEncode({
-          "UserId": "1",
+          "UserId": "1", //de khoi loi form body
           "title": title,
           "image": image,
           "kinhDo": kinhDo,
@@ -59,7 +59,7 @@ class _MapScreenState extends State<MapScreen> {
 
       if (response.statusCode == 201) {
         // Load lại danh sách markers sau khi thêm thành công
-        await _loadMarkers();
+        await _loadMarkers(); //load map
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Thêm marker thành công!")),
         );
@@ -154,8 +154,8 @@ class _MapScreenState extends State<MapScreen> {
               popupAnchor: [0, -30]
             });
 
-            const arrTest = [${markersJs}];
-            arrTest.forEach((element) => {
+            const arrMarker = [${markersJs}];
+            arrMarker.forEach((element) => {
               L.marker([element.kinh, element.vi], { icon: customIcon }).addTo(map)
                 .bindPopup(\`
                   <div>
@@ -178,37 +178,89 @@ class _MapScreenState extends State<MapScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Thêm Marker"),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0), // Bo góc cho hộp thoại
+        ),
+        title: Text(
+          "Thêm Marker",
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+          textAlign: TextAlign.center, // Canh giữa tiêu đề
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // TextField tiêu đề
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(labelText: "Title"),
+              decoration: InputDecoration(
+                labelText: "Tiêu đề",
+                labelStyle: const TextStyle(color: Colors.black),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: const BorderSide(color: Colors.tealAccent),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: const BorderSide(color: Colors.tealAccent),
+                ),
+              ),
             ),
+            const SizedBox(height: 16),
+            // TextField hình ảnh
             TextField(
               controller: imageController,
-              decoration: const InputDecoration(labelText: "Image URL"),
+              decoration: InputDecoration(
+                labelText: "Hình ảnh",
+                labelStyle: const TextStyle(color: Colors.black),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: const BorderSide(color: Colors.tealAccent),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                  borderSide: const BorderSide(color: Colors.tealAccent),
+                ),
+              ),
             ),
           ],
         ),
         actions: [
+          // Nút Hủy
           TextButton(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text("Hủy"),
+            child: const Text(
+              "Hủy",
+              style: TextStyle(color: Colors.red),
+            ),
           ),
-          TextButton(
+          // Nút Thêm
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _addmarker(titleController.text, imageController.text);
             },
-            child: const Text("Thêm"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.tealAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: const Text(
+              "Thêm",
+              style: TextStyle(color: Colors.black),
+            ),
           ),
         ],
       ),
     );
+
   }
 
   @override
@@ -222,7 +274,47 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Map Screen'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.teal, Colors.tealAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.white,
+              radius: 24,
+              child: Icon(Icons.map, color: Colors.teal, size: 28),
+            ),
+            const SizedBox(width: 0),
+            Expanded(
+              child: Center(
+                child: Text(
+                  'Bản đồ ký ức',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
       body: hasPermission
           ? WebViewWidget(controller: controllerPin!)

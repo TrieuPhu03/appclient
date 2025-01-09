@@ -156,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.purple, Colors.blueAccent],
+              colors: [Colors.teal, Colors.tealAccent],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -170,24 +170,28 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             CircleAvatar(
               backgroundColor: Colors.white,
-              radius: 20,
-              child: Icon(Icons.home, color: Colors.purple, size: 24),
+              radius: 24,
+              child: Icon(Icons.home, color: Colors.teal, size: 28),
             ),
-            const SizedBox(width: 8),
-            Text(
-              'Trang chính',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Center(
+                child: Text(
+                  'Trang chủ',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
+                ),
               ),
             ),
           ],
         ),
-        centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: Colors.white, size: 28),
@@ -249,13 +253,9 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToAddPost,
-        child: Icon(Icons.add),
-        backgroundColor: Colors.blueAccent,
-      ),
     );
   }
+
 
   Widget _buildErrorState(BuildContext context, {
     required String message,
@@ -405,9 +405,9 @@ class _PostCard extends StatelessWidget {
                       value: 'edit',
                       child: Row(
                         children: [
-                          Icon(Icons.edit, color: Colors.blue),
+                          Icon(Icons.edit, color: Colors.green),
                           SizedBox(width: 8),
-                          Text('Edit'),
+                          Text('Sửa'),
                         ],
                       ),
                     ),
@@ -417,7 +417,7 @@ class _PostCard extends StatelessWidget {
                         children: [
                           Icon(Icons.delete, color: Colors.red),
                           SizedBox(width: 8),
-                          Text('Delete'),
+                          Text('Xoá'),
                         ],
                       ),
                     ),

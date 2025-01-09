@@ -29,10 +29,78 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.transparent, // Nền trong suốt
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.teal, Colors.tealAccent], // Hiệu ứng gradient
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 4), // Hiệu ứng bóng đổ
+              ),
+            ],
+          ),
+        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.white,
+              radius: 24,
+              child: Icon(Icons.person, color: Colors.teal, size: 28),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Center(
+                child: Text(
+                  'Trang cá nhân',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.white),
+            onPressed: () async {
+              final user = await _userFuture;
+              DateTime? birthDay = user['birthDay'] != null
+                  ? DateTime.parse(user['birthDay'])
+                  : null;
+
+              final updated = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfileScreen(
+                    email: user['email'] ?? '',
+                    phone: user['phoneNumber'] ?? '',
+                    initials: user['initials'] ?? '',
+                    birthDay: birthDay,
+                    image: user['image'],
+                  ),
+                ),
+              );
+
+              if (updated == true) {
+                setState(() {
+                  _userFuture = _accountService.getProfile();
+                });
+              }
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _userFuture,
@@ -57,29 +125,29 @@ class _AccountScreenState extends State<AccountScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                CircleAvatar(
-                radius: 80,
-                backgroundImage: user['image'] != null
-                    ? FileImage(File(user['image']))  // Đọc hình ảnh từ file cục bộ
-                    : const AssetImage('assets/nguoidung.jpg') as ImageProvider,
-                backgroundColor: Colors.white,
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.teal.shade200,
-                      width: 4,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
+                  CircleAvatar(
+                    radius: 80,
+                    backgroundImage: user['image'] != null
+                        ? FileImage(File(user['image']))  // Đọc hình ảnh từ file cục bộ
+                        : const AssetImage('assets/nguoidung.jpg') as ImageProvider,
+                    backgroundColor: Colors.white,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.teal.shade200,
+                          width: 4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
                   Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16.0),
@@ -106,40 +174,6 @@ class _AccountScreenState extends State<AccountScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      ),
-                      elevation: 5,
-                      textStyle: const TextStyle(fontSize: 16),
-                    ),
-                    onPressed: () async {
-                      final updated = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditProfileScreen(
-                            email: user['email'] ?? '',
-                            phone: user['phoneNumber'] ?? '',
-                            initials: user['initials'] ?? '',
-                            birthDay: birthDay,
-                            image: user['image'],
-                          ),
-                        ),
-                      );
-
-                      // Nếu updated == true thì tiến hành gọi setState để reload Future
-                      if (updated == true) {
-                        setState(() {
-                          _userFuture = _accountService.getProfile();
-                        });
-                      }
-                    },
-                    child: const Text('Chỉnh sửa thông tin'),
-                  ),
                 ],
               ),
             ),
@@ -148,6 +182,7 @@ class _AccountScreenState extends State<AccountScreen> {
       ),
     );
   }
+
   Widget _buildDetailRow(IconData icon, String label, String? value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

@@ -39,7 +39,7 @@ class _DeletePostScreenState extends State<DeletePostScreen> {
 
     if (response.statusCode == 200 || response.statusCode == 204) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Post deleted successfully!')),
+        const SnackBar(content: Text('Bạn đã xoá bài đăng!')),
       );
       widget.onDeleteSuccess(); // Gọi callback để làm mới danh sách bài đăng
       Navigator.pop(context, true); // Quay lại màn hình trước
@@ -54,7 +54,7 @@ class _DeletePostScreenState extends State<DeletePostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Delete Post')),
+      appBar: AppBar(title: const Text('Xoá')),
       body: Center(
         child: isLoading
             ? const CircularProgressIndicator() // Hiển thị loader khi đang xử lý

@@ -81,57 +81,103 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chỉnh sửa thông tin'),
-      ),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent, // Nền trong suốt
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.teal, Colors.tealAccent], // Hiệu ứng gradient
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 4), // Hiệu ứng bóng đổ
+                ),
+              ],
+            ),
+          ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.edit, color: Colors.white, size: 28), // Biểu tượng
+              const SizedBox(width: 8),
+              const Text(
+                'Chỉnh sửa thông tin',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                ),
+              ),
+            ],
+          ),
+          centerTitle: true,
+        ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Hình ảnh đại diện
               Center(
                 child: GestureDetector(
                   onTap: _selectImage,
-                  child: CircleAvatar(
-                    radius: 50,
-                    backgroundImage: _imageFile != null
-                        ? FileImage(_imageFile!)
-                        : widget.image != null
-                        ? NetworkImage(widget.image!)
-                        : const AssetImage('assets/nguoidung.jpg')
-                    as ImageProvider,
-                    child: _imageFile == null && widget.image == null
-                        ? const Icon(Icons.camera_alt, color: Colors.white)
-                        : null,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundImage: _imageFile != null
+                            ? FileImage(_imageFile!)
+                            : widget.image != null
+                            ? NetworkImage(widget.image!)
+                            : const AssetImage('assets/nguoidung.jpg')
+                        as ImageProvider,
+                        child: _imageFile == null && widget.image == null
+                            ? const Icon(Icons.camera_alt, color: Colors.white, size: 30)
+                            : null,
+                      ),
+                      if (_imageFile == null && widget.image == null)
+                        const CircleAvatar(
+                          radius: 60,
+                          backgroundColor: Colors.black38,
+                        ),
+                    ],
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              TextField(
+
+              // Trường nhập liệu Email
+              _buildTextField(
                 controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
+                label: 'Email',
+                icon: Icons.email,
               ),
               const SizedBox(height: 10),
-              TextField(
+
+              // Trường nhập liệu Số điện thoại
+              _buildTextField(
                 controller: _phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Số điện thoại',
-                  border: OutlineInputBorder(),
-                ),
+                label: 'Số điện thoại',
+                icon: Icons.phone,
               ),
               const SizedBox(height: 10),
-              TextField(
+
+              // Trường nhập liệu Tên viết tắt
+              _buildTextField(
                 controller: _initialsController,
-                decoration: const InputDecoration(
-                  labelText: 'Tên viết tắt',
-                  border: OutlineInputBorder(),
-                ),
+                label: 'Tên viết tắt',
+                icon: Icons.person,
               ),
               const SizedBox(height: 10),
+
+              // Trường nhập liệu Ngày sinh
               GestureDetector(
                 onTap: () async {
                   final DateTime? picked = await showDatePicker(
@@ -147,21 +193,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   }
                 },
                 child: AbsorbPointer(
-                  child: TextField(
+                  child: _buildTextField(
                     controller: _birthDayController,
-                    decoration: const InputDecoration(
-                      labelText: 'Ngày sinh',
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.calendar_today),
-                    ),
+                    label: 'Ngày sinh',
+                    icon: Icons.calendar_today,
+                    isDateField: true,
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
+
+              // Nút lưu thay đổi
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.tealAccent,
                     minimumSize: const Size(200, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
                   onPressed: () async {
                     try {
@@ -179,7 +229,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Cập nhật thành công')),
                       );
-                      // Pop kèm theo giá trị true để báo với màn hình trước là có cập nhật
                       Navigator.pop(context, true);
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -187,15 +236,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       );
                     }
                   },
-                  child: const Text('Lưu thay đổi'),
+                  child: const Text(
+                    'Lưu thay đổi',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
-                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool isDateField = false,
+  }) {
+    return TextField(
+      controller: controller,
+      readOnly: isDateField,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.tealAccent),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      ),
+    );
+  }
+
 
   @override
   void dispose() {

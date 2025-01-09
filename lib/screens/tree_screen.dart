@@ -55,22 +55,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent, // Nền trong suốt
         elevation: 0,
-        backgroundColor: Colors.white,
-        title: Text(
-          'Cài đặt',
-          style: TextStyle(
-            color: Colors.blue[400],
-            fontWeight: FontWeight.bold,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.teal, Colors.tealAccent], // Hiệu ứng gradient
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 4), // Hiệu ứng bóng đổ
+              ),
+            ],
           ),
         ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.blue[400]),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.white,
+              radius: 24,
+              child: Icon(Icons.settings, color: Colors.teal, size: 28),
+            ),
+            const SizedBox(width: 90), // Giảm khoảng cách giữa biểu tượng và chữ
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft, // Đưa chữ sát hơn về bên trái
+                child: Text(
+                  'Cài đặt',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 25,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
+
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -175,86 +203,141 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final _newPasswordController = TextEditingController();
     final _confirmPasswordController = TextEditingController();
     bool isLoading = false;
+
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Thay đổi mật khẩu'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0), // Bo góc hộp thoại
+              ),
+              title: Text(
+                'Thay đổi mật khẩu',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.tealAccent,
+                ),
+                textAlign: TextAlign.center, // Căn giữa tiêu đề
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   children: [
+                    // Mật khẩu hiện tại
                     TextField(
                       controller: _currentPasswordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Mật khẩu hiện tại',
-                        border: OutlineInputBorder(),
+                        labelStyle: const TextStyle(color: Colors.black),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: const BorderSide(color: Colors.tealAccent),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: const BorderSide(color: Colors.tealAccent),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
+                    // Mật khẩu mới
                     TextField(
                       controller: _newPasswordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Mật khẩu mới',
-                        border: OutlineInputBorder(),
+                        labelStyle: const TextStyle(color: Colors.black),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: const BorderSide(color: Colors.tealAccent),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: const BorderSide(color: Colors.tealAccent),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
+                    // Xác nhận mật khẩu mới
                     TextField(
                       controller: _confirmPasswordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Xác nhận mật khẩu mới',
-                        border: OutlineInputBorder(),
+                        labelStyle: const TextStyle(color: Colors.black),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: const BorderSide(color: Colors.tealAccent),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide: const BorderSide(color: Colors.tealAccent),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               actions: [
+                // Nút Hủy
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Hủy'),
+                  child: const Text(
+                    'Hủy',
+                    style: TextStyle(color: Colors.red),
+                  ),
                 ),
+                // Nút Lưu
                 ElevatedButton(
                   onPressed: isLoading
                       ? null
                       : () async {
-                          final currentPassword =
-                              _currentPasswordController.text;
-                          final newPassword = _newPasswordController.text;
-                          final confirmPassword =
-                              _confirmPasswordController.text;
+                    final currentPassword =
+                        _currentPasswordController.text;
+                    final newPassword = _newPasswordController.text;
+                    final confirmPassword =
+                        _confirmPasswordController.text;
 
-                          if (newPassword != confirmPassword) {
-                            _showErrorDialog(
-                                'Mật khẩu mới và xác nhận không khớp.');
-                            return;
-                          }
+                    if (newPassword != confirmPassword) {
+                      _showErrorDialog(
+                          'Mật khẩu mới và xác nhận không khớp.');
+                      return;
+                    }
 
-                          setState(() {
-                            isLoading = true;
-                          });
+                    setState(() {
+                      isLoading = true;
+                    });
 
-                          try {
-                            await _changePassword(currentPassword, newPassword);
-                            Navigator.pop(context);
-                            _showSuccessDialog(
-                                'Mật khẩu đã được thay đổi thành công.');
-                          } catch (e) {
-                            _showErrorDialog(e.toString());
-                          } finally {
-                            setState(() {
-                              isLoading = false;
-                            });
-                          }
-                        },
+                    try {
+                      await _changePassword(currentPassword, newPassword);
+                      Navigator.pop(context);
+                      _showSuccessDialog(
+                          'Mật khẩu đã được thay đổi thành công.');
+                    } catch (e) {
+                      _showErrorDialog(e.toString());
+                    } finally {
+                      setState(() {
+                        isLoading = false;
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.tealAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    elevation: 4,
+                  ),
                   child: isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text('Lưu'),
+                      ? const CircularProgressIndicator(color: Colors.black)
+                      : const Text(
+                    'Lưu',
+                    style: TextStyle(color: Colors.black),
+                  ),
                 ),
               ],
             );
@@ -263,6 +346,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
   }
+
 
 // Hàm gửi yêu cầu thay đổi mật khẩu đến API backend
   Future<void> _changePassword(
