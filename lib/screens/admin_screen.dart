@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nguyentrieuphu_2180601134_sunflower/screens/login_screen.dart';
-import 'user_list_screen.dart'; // Import màn hình quản lý người dùng
-import 'post_list_screen.dart'; // Import màn hình quản lý bài viết
+import 'user_list_screen.dart';
+import 'post_list_screen.dart';
+import 'marker_list_screen.dart';
 
 class AdminScreen extends StatelessWidget {
   const AdminScreen({super.key});
@@ -150,6 +151,17 @@ class AdminScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => PostListScreen()),
+                      );
+                    },
+                  ),
+                  _buildAdminFeatureCard(
+                    icon: Icons.article,
+                    title: 'Quản Lý Marker',
+                    color: Colors.orange,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MarkerListScreen()),
                       );
                     },
                   ),

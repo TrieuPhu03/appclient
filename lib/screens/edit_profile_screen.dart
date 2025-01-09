@@ -171,7 +171,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         _initialsController.text,
                         _emailController.text,
                         _phoneController.text,
-                        selectedBirthDay, // Bỏ dấu ! vì đã cho phép null
+                        selectedBirthDay,
                         _imageFile?.path,
                       );
 
@@ -179,7 +179,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Cập nhật thành công')),
                       );
-                      Navigator.pop(context);
+                      // Pop kèm theo giá trị true để báo với màn hình trước là có cập nhật
+                      Navigator.pop(context, true);
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Lỗi cập nhật: $e')),
@@ -188,7 +189,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   },
                   child: const Text('Lưu thay đổi'),
                 ),
-              ),
+                ),
             ],
           ),
         ),

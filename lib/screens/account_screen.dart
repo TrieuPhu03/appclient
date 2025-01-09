@@ -117,26 +117,27 @@ class _AccountScreenState extends State<AccountScreen> {
                       elevation: 5,
                       textStyle: const TextStyle(fontSize: 16),
                     ),
-                      onPressed: () async {
-                        final updated = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditProfileScreen(
-                              email: user['email'] ?? '',
-                              phone: user['phoneNumber'] ?? '',
-                              initials: user['initials'] ?? '',
-                              birthDay: birthDay,
-                              image: user['image'],
-                            ),
+                    onPressed: () async {
+                      final updated = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditProfileScreen(
+                            email: user['email'] ?? '',
+                            phone: user['phoneNumber'] ?? '',
+                            initials: user['initials'] ?? '',
+                            birthDay: birthDay,
+                            image: user['image'],
                           ),
-                        );
+                        ),
+                      );
 
-                        if (updated == true) {
-                          setState(() {
-                            _userFuture = _accountService.getProfile(); // Tải lại dữ liệu
-                          });
-                        }
-                      },
+                      // Nếu updated == true thì tiến hành gọi setState để reload Future
+                      if (updated == true) {
+                        setState(() {
+                          _userFuture = _accountService.getProfile();
+                        });
+                      }
+                    },
                     child: const Text('Chỉnh sửa thông tin'),
                   ),
                 ],

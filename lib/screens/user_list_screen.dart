@@ -31,7 +31,7 @@ class _UserListScreenState extends State<UserListScreen> {
     });
 
     final response = await http.get(
-      Uri.parse('${Config_URL.baseUrl}User'),
+      Uri.parse('${Config_URL.baseUrl}Admin/users'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -59,19 +59,21 @@ class _UserListScreenState extends State<UserListScreen> {
     final token = prefs.getString('jwt_token');
 
     final response = await http.delete(
-      Uri.parse('${Config_URL.baseUrl}User/$id'),
+      Uri.parse('${Config_URL.baseUrl}Admin/users/$id'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      // Thành công: 200 OK hoặc 204 No Content
       fetchUsers(); // Cập nhật danh sách sau khi xóa
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Xóa người dùng thành công')),
       );
     } else {
+      // Thất bại: Các mã trạng thái khác
       print('Failed to delete user: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Xóa người dùng thất bại')),

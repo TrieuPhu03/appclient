@@ -29,7 +29,7 @@ class _PostListScreenState extends State<PostListScreen> {
     });
 
     final response = await http.get(
-      Uri.parse('${Config_URL.baseUrl}Post'),
+      Uri.parse('${Config_URL.baseUrl}Admin/posts'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -57,20 +57,22 @@ class _PostListScreenState extends State<PostListScreen> {
     final token = prefs.getString('jwt_token');
 
     final response = await http.delete(
-      Uri.parse('${Config_URL.baseUrl}Post/$id'),
+      Uri.parse('${Config_URL.baseUrl}Admin/posts/$id'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      // Thành công: 200 OK hoặc 204 No Content
       fetchPosts(); // Cập nhật danh sách sau khi xóa
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Xóa bài viết thành công')),
       );
     } else {
-      print('Failed to delete post: ${response.body}');
+      // Thất bại: Các mã trạng thái khác
+      print('Failed to delete user: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Xóa bài viết thất bại')),
       );
